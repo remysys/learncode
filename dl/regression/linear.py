@@ -275,3 +275,24 @@ dv_set = prep_dataloader(tr_path, 'dev', config['batch_size'], target_only=targe
 tt_set = prep_dataloader(tt_path, 'test', config['batch_size'], target_only=target_only)
 model = NeuralNet(tr_set.dataset.dim).to(device)  # construct model and move to device
 model_loss, model_loss_record = train(tr_set, dv_set, model, config, device)
+
+del model
+model = NeuralNet(tr_set.dataset.dim).to(device)
+# Load your best model
+ckpt = torch.load(config['save_path'], map_location='cpu', weights_only=True)
+model.load_state_dict(ckpt)
+plot_pred(dv_set, model, device)  # Show prediction on the validation set
+
+
+def save_pred(preds, file):
+  ''' Save predictions to specified file '''
+  print('Saving results to {}'.format(file))
+  with open(file, 'w') as fp:
+    writer = csv.writer(fp)
+    writer.writerow(['id', 'tested_positive'])
+    for i, p in enumerate(preds):
+      writer.writerow([i, p])
+
+
+preds = test(tt_set, model, device)  # predict COVID-19 cases with your model
+save_pred(preds, 'pred.csv')         # save prediction file to pred.csv
