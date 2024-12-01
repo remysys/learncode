@@ -1,5 +1,5 @@
 """
-# https://colab.research.google.com/github/ga642381/ML2021-Spring/blob/main/HW01/HW01.ipynb
+https://colab.research.google.com/github/ga642381/ML2021-Spring/blob/main/HW01/HW01.ipynb
 """
 
 import torch
@@ -82,7 +82,7 @@ class COVID19Dataset(Dataset):
     if not target_only:
       feats = list(range(93))
     else:
-      # TODO: Using 40 states & 2 tested_positive features (indices = 57 & 75)
+      # TODO: using 40 states & 2 tested_positive features (indices = 57 & 75)
       pass
 
     if mode == 'test':
@@ -128,12 +128,10 @@ class COVID19Dataset(Dataset):
 
 def prep_dataloader(path, mode, batch_size, n_jobs=0, target_only=False):
   ''' generates a dataset, then is put into a dataloader '''
-  dataset = COVID19Dataset(
-      path, mode=mode, target_only=target_only)
-  dataloader = DataLoader(
-      dataset, batch_size,
-      shuffle=(mode == 'train'), drop_last=False,
-      num_workers=n_jobs, pin_memory=True)
+  dataset = COVID19Dataset(path, mode=mode, target_only=target_only)
+  dataloader = DataLoader(dataset, batch_size,
+                          shuffle=(mode == 'train'), drop_last=False,
+                          num_workers=n_jobs, pin_memory=True)
   return dataloader
 
 
@@ -141,10 +139,10 @@ class NeuralNet(nn.Module):
   ''' a simple fully-connected deep neural network '''
 
   def __init__(self, input_dim):
-    super(NeuralNet, self).__init__()
+    super().__init__()
 
     # define your neural network here
-    # TODO: How to modify this model to achieve better performance?
+    # TODO: how to modify this model to achieve better performance?
     self.net = nn.Sequential(
         nn.Linear(input_dim, 64),
         nn.ReLU(),
@@ -195,7 +193,7 @@ def train(tr_set, dv_set, model, config, device):
     if dev_mse < min_mse:
       # save model if your model improved
       min_mse = dev_mse
-      print('Saving model (epoch = {:4d}, loss = {:.4f})'
+      print('saving model (epoch = {:4d}, loss = {:.4f})'
             .format(epoch + 1, min_mse))
       # save model to specified path
       torch.save(model.state_dict(), config['save_path'])
@@ -249,22 +247,22 @@ def test(tt_set, model, device):
 device = get_device()
 # the trained model will be saved to ./models/
 os.makedirs('models', exist_ok=True)
-# TODO: Using 40 states & 2 tested_positive features
+# TODO: using 40 states & 2 tested_positive features
 target_only = False
 
-# TODO: How to tune these hyper-parameters to improve your model's performance?
+# TODO: how to tune these hyper-parameters to improve your model's performance?
 config = {
-    'n_epochs': 3000,                # maximum number of epochs
-    'batch_size': 270,               # mini-batch size for dataloader
-    # optimization algorithm (optimizer in torch.optim)
-    'optimizer': 'SGD',
-    'optim_hparas': {                # hyper-parameters for the optimizer (depends on which optimizer you are using)
-        'lr': 0.001,                 # learning rate of SGD
-        'momentum': 0.9              # momentum for SGD
-    },
-    # early stopping epochs (the number epochs since your model's last improvement)
-    'early_stop': 200,
-    'save_path': 'models/model.pth'  # your model will be saved here
+  'n_epochs': 3000,                # maximum number of epochs
+  'batch_size': 270,               # mini-batch size for dataloader
+  # optimization algorithm (optimizer in torch.optim)
+  'optimizer': 'SGD',
+  'optim_hparas': {                # hyper-parameters for the optimizer (depends on which optimizer you are using)
+    'lr': 0.001,                   # learning rate of SGD
+    'momentum': 0.9                # momentum for SGD
+  },
+  # early stopping epochs (the number epochs since your model's last improvement)
+  'early_stop': 200,
+  'save_path': 'models/model.pth'  # your model will be saved here
 }
 
 tr_path = 'covid.train.csv'  # path to training data
@@ -278,15 +276,15 @@ model_loss, model_loss_record = train(tr_set, dv_set, model, config, device)
 
 del model
 model = NeuralNet(tr_set.dataset.dim).to(device)
-# Load your best model
+# load your best model
 ckpt = torch.load(config['save_path'], map_location='cpu', weights_only=True)
 model.load_state_dict(ckpt)
-plot_pred(dv_set, model, device)  # Show prediction on the validation set
+plot_pred(dv_set, model, device)  # show prediction on the validation set
 
 
 def save_pred(preds, file):
-  ''' Save predictions to specified file '''
-  print('Saving results to {}'.format(file))
+  ''' save predictions to specified file '''
+  print('saving results to {}'.format(file))
   with open(file, 'w') as fp:
     writer = csv.writer(fp)
     writer.writerow(['id', 'tested_positive'])
