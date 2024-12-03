@@ -277,7 +277,7 @@ model_loss, model_loss_record = train(tr_set, dv_set, model, config, device)
 del model
 model = NeuralNet(tr_set.dataset.dim).to(device)
 # load your best model
-ckpt = torch.load(config['save_path'], map_location='cpu', weights_only=True)
+ckpt = torch.load(config['save_path'], map_location='cpu', weights_only=False)
 model.load_state_dict(ckpt)
 plot_pred(dv_set, model, device)  # show prediction on the validation set
 
