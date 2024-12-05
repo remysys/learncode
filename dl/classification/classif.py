@@ -192,3 +192,6 @@ with open(file, 'w') as f:
   for i, y in enumerate(predict):
     f.write('{},{}\n'.format(i, y))
 print('done!')
+
+
+
