@@ -289,9 +289,9 @@ for epoch in range(n_epochs):
   print(f"[ Valid | {epoch + 1:03d}/{n_epochs:03d} ] loss = {valid_loss:.5f}, acc = {valid_acc:.5f}")
 
 
-plot_learning_curve(loss_acc_record, title='deep model', mode='acc')  # plot acc curve
+plot_learning_curve(loss_acc_record, title='cnn', mode='acc')  # plot acc curve
 
-plot_learning_curve(loss_acc_record, title='deep model', mode='loss')  # plot loss curve
+plot_learning_curve(loss_acc_record, title='cnn', mode='loss')  # plot loss curve
 
 # make sure the model is in eval mode
 # some modules like Dropout or BatchNorm affect if the model is in training mode
