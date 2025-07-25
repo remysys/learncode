@@ -1,6 +1,6 @@
-# Makefile for livepatch-sample module
+# Makefile for livepatch modules
 
-obj-m := livepatch-sample.o
+obj-m := livepatch-sample.o livepatch-uptime.o
 
 KDIR := /lib/modules/$(shell uname -r)/build
 PWD := $(shell pwd)
