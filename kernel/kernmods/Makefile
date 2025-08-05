@@ -11,6 +11,8 @@ obj-m += procfs2.o
 obj-m += procfs3.o
 obj-m += procfs4.o
 obj-m += hello-sysfs.o
+obj-m += ioctl.o
+obj-m += chardev2.o
 
 PWD := $(CURDIR)
 
