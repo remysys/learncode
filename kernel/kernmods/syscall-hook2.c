@@ -22,7 +22,13 @@
 
 #include <linux/kprobes.h>
 
-/* uid we want to spy on - will be filled from the command line. */
+/* 
+ * uid we want to spy on - will be filled from the command line. 
+ * you can check your user uid by running `id -u` in the shell.
+ * example usage:
+ * insmod syscall-hook2.ko uid=0
+ */
+
 static uid_t uid = -1;
 module_param(uid, int, 0644);
 
@@ -39,13 +45,28 @@ static int sys_call_kprobe_pre_handler(struct kprobe *p, struct pt_regs *regs) {
     return 0;
   }
 
-  const char __user *filename = (const char __user *)regs->si;
+  /*
+   * __x64_sys_openat is the actual syscall handler for openat, defined as:
+   *   __SYSCALL_DEFINEx(4, openat, int dfd, const char __user *filename, ...)
+   * this macro expands to a function with a single argument:
+   *   long __x64_sys_openat(struct pt_regs *regs);
+   * where the real syscall arguments (dfd, filename, etc.) are stored inside the pt_regs structure.
+
+   * according to the x86-64 calling convention:
+   * - the pointer to the pt_regs struct is passed in the RDI register when __x64_sys_openat is called.
+   * - thus, regs->di holds the address of the pt_regs struct containing the real syscall arguments.
+
+   * we cast regs->di to (struct pt_regs *) to access these real arguments.
+   * for the openat syscall, the second argument 'filename' is located in the RSI register,
+   * so we read syscall_regs->si to get the filename pointer.
+   */
 
   char fname[256] = {0};
+  struct pt_regs *syscall_regs = (struct pt_regs *)regs->di;
+  const char __user *filename = (const char __user *)syscall_regs->si;
+
   if (strncpy_from_user(fname, filename, sizeof(fname) - 1) > 0) {
-    pr_info("openat by uid %d: %s\n", uid, fname);
-  } else {
-    pr_info("openat by uid %d: [filename unreadable]\n", uid);
+    pr_info("open %s by uid %d\n", fname, uid);
   }
 
   return 0;

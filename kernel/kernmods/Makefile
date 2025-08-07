@@ -16,7 +16,6 @@ obj-m += chardev2.o
 obj-m += syscall-hook.o
 obj-m += syscall-hook2.o
 obj-m += syscall-hook3.o
-obj-m += syscall-test.o
 
 
 PWD := $(CURDIR)
