@@ -148,10 +148,8 @@ static void __exit syscall_hook_exit(void) {
 
   /* return the system call back to normal */
   if (sys_call_table_stolen[__NR_openat] != (unsigned long *)hooked_sys_openat) {
-    pr_alert("somebody else also played with the ");
-    pr_alert("open system call\n");
-    pr_alert("the system may be left in ");
-    pr_alert("an unstable state.\n");
+    pr_alert("somebody else also played with the open system call\n");
+    pr_alert("the system may be left in an unstable state.\n");
   }
 
   disable_write_protection();
