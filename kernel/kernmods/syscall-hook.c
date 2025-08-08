@@ -37,53 +37,21 @@ module_param(uid, int, 0644);
 
 static unsigned long **sys_call_table_stolen;
 
-/* a pointer to the original system call. the reason we keep this, rather
- * than call the original function (sys_openat), is because somebody else
- * might have replaced the system call before us. note that this is not
- * 100% safe, because if another module replaced sys_openat before us,
- * then when we are inserted, we will call the function in that module -
- * and it might be removed before we are.
- *
- * another reason for this is that we can not get sys_openat.
- * it is a static variable, so it is not exported.
- */
-
 static asmlinkage long (*original_call)(const struct pt_regs *);
 
-/* the function we will replace sys_openat (the function called when you
- * call the open system call) with. to find the exact prototype, with
- * the number and type of arguments, we find the original function first
- * (it is at fs/open.c).
- *
- * in theory, this means that we are tied to the current version of the
- * kernel. in practice, the system calls almost never change (it would
- * wreck havoc and require programs to be recompiled, since the system
- * calls are the interface between the kernel and the processes).
- */
-
 static asmlinkage long hooked_sys_openat(const struct pt_regs *regs) {
-  int i = 0;
-  char ch;
-
-  pr_alert("hooked_sys_openat called by uid:%d\n", __kuid_val(current_uid()));
-
-  
+    
   if (__kuid_val(current_uid()) != uid)
     goto orig_call;
 
-  /* report the file, if relevant */
-  pr_info("opened file by %d: ", uid);
-  
-  do {
-    get_user(ch, (char __user *)regs->si + i);
+  char fname[256] = {0};
+  const char __user *filename = (const char __user *)regs->si;
 
-    i++;
-    pr_info("%c", ch);
-  } while (ch != 0);
-  pr_info("\n");
-  
+  if (strncpy_from_user(fname, filename, sizeof(fname) - 1) > 0) {
+    pr_info("open %s by uid %d\n", fname, uid);
+  }
+
 orig_call:
-  /* call the original sys_openat - otherwise, we lose the ability to open files. */
   return original_call(regs);
 }
 
@@ -128,11 +96,7 @@ static int __init syscall_hook_init(void) {
     return -1;
 
   disable_write_protection();
-
-  /* keep track of the original open function */
   original_call = (void *)sys_call_table_stolen[__NR_openat];
-
-  /* use our openat function instead */
   sys_call_table_stolen[__NR_openat] = (unsigned long *)hooked_sys_openat;
 
   enable_write_protection();
@@ -146,7 +110,6 @@ static void __exit syscall_hook_exit(void) {
   if (!sys_call_table_stolen)
       return;
 
-  /* return the system call back to normal */
   if (sys_call_table_stolen[__NR_openat] != (unsigned long *)hooked_sys_openat) {
     pr_alert("somebody else also played with the open system call\n");
     pr_alert("the system may be left in an unstable state.\n");
@@ -162,3 +125,34 @@ static void __exit syscall_hook_exit(void) {
 module_init(syscall_hook_init);
 module_exit(syscall_hook_exit);
 MODULE_LICENSE("GPL");
+
+
+ /*
+ * sys_call_table is no longer used for actual syscall dispatch since Linux v6.9.
+ * commit 1e3ad78334a69b36e107232e337f9d693dcc9df2 introduced a security
+ * mitigation against speculative execution on x86 by removing the syscall table
+ * from the dispatch path. this change has been backported to:
+ *   - v6.8.5+
+ *   - v6.6.26+
+ *   - v6.1.85+
+ *   - v5.15.154+
+ *
+ * as a result, sys_call_table is now only used for tracing (CONFIG_FTRACE_SYSCALLS=y).
+ * the actual syscall dispatch is now implemented as a large inlined switch-case:
+ *
+ *   #define __SYSCALL(nr, sym) case nr: return __x64_##sym(regs);
+ *
+ *   long x64_sys_call(const struct pt_regs *regs, unsigned int nr)
+ *   {
+ *       switch (nr) {
+ *       #include <asm/syscalls_64.h>
+ *       default: return __x64_sys_ni_syscall(regs);
+ *       }
+ *   };
+ *
+ * this means that replacing sys_call_table entries no longer affects the
+ * real syscall execution path on modern kernels.
+ *
+ * reference:
+ *   https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git/commit/?id=1e3ad78334a69b36e107232e337f9d693dcc9df2
+ */
