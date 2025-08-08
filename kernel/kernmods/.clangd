@@ -1,0 +1,25 @@
+# .clangd (placed in the project root)
+# generate compile_commands.json by running:
+#   python3 scripts/clang-tools/gen_compile_commands.py
+# inside the Linux kernel source directory, then copy it here.
+
+CompileFlags:
+  # remove all GCC-only flags at once
+  Remove:
+    - -mindirect-branch=thunk-extern
+    - -mindirect-branch-register
+    - -mindirect-branch-cs-prefix
+    - -mfunction-return=thunk-extern
+    - -fno-allow-store-data-races
+    - -mrecord-mcount
+    - -fconserve-stack
+    - -ftrivial-auto-var-init=zero
+    - -mpreferred-stack-boundary=3
+  
+  # because using the kernel's compile_commands.json causes standard
+  # library headers like stdio.h to be missing, add the standard
+  # library include directories here.
+  Add: [
+    "-I/usr/include",
+    "-I/usr/include/x86_64-linux-gnu",
+  ]
