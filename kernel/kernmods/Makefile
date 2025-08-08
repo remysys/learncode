@@ -18,6 +18,10 @@ obj-m += syscall-hook2.o
 obj-m += syscall-hook3.o
 obj-m += sleep.o
 obj-m += completions.o
+obj-m += mutex.o
+obj-m += spinlock.o
+obj-m += rwlock.o
+obj-m += atomic.o
 
 
 PWD := $(CURDIR)
