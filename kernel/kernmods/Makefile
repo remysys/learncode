@@ -23,6 +23,8 @@ obj-m += spinlock.o
 obj-m += rwlock.o
 obj-m += atomic.o
 obj-m += tty.o
+obj-m += tasklet.o
+obj-m += sched.o
 
 
 PWD := $(CURDIR)
