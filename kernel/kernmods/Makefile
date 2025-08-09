@@ -25,6 +25,7 @@ obj-m += atomic.o
 obj-m += tty.o
 obj-m += tasklet.o
 obj-m += sched.o
+obj-m += intr.o
 
 
 PWD := $(CURDIR)
