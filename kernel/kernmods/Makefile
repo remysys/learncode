@@ -22,6 +22,7 @@ obj-m += mutex.o
 obj-m += spinlock.o
 obj-m += rwlock.o
 obj-m += atomic.o
+obj-m += tty.o
 
 
 PWD := $(CURDIR)
